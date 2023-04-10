@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+        <title>烟花效果</title>
+        <style>
+            canvas {
+                background-color: black;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="canvas" width="800" height="600"></canvas>
+        <script>
+            var canvas = document.getElementById("canvas");
+            var ctx = canvas.getContext("2d");
+
+            // 定义粒子对象的构造函数
+            function Particle(x, y, vx, vy, radius, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.radius = radius;
+                this.color = color;
+            }
+
+            // 定义粒子对象的draw方法
+            Particle.prototype.draw = function() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            };
+
+            // 定义粒子对象的update方法
+            Particle.prototype.update = function() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.1;
+                if (this.y > canvas.height) {
+                    this.vy *= -0.8;
+                    this.vx *= 0.8;
+                    this.y = canvas.height;
+                }
+            };
+
+            // 定义烟花粒子对象的构造函数
+            function Firework() {
+                // 随机位置和速度
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height;
+                this.vx = Math.random() * 6 - 3;
+                this.vy = -Math.random() * 12 - 8;
+                // 随机颜色
+                this.color = "rgb(" + Math.floor(Math.random() * 256) + ", " + Math.floor(Math.random() * 256) + ", " + Math.floor(Math.random() * 256) + ")";
+                // 创建一个空的火花数组
+                this.fireworks = [];
+                // 是否已经爆炸
+                this.exploded = false;
+                // 爆炸时间
+                this.explodeTime = Math.random() * 60 + 60;
+                // 爆炸半径
+                this.explodeRadius = Math.random() * 100 + 50;
+            }
+
+            // 定义烟花粒子对象的draw方法
+            Firework.prototype.draw = function() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 3, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            };
+
+            // 定义烟花粒子对象的update方法
+            Firework.prototype.update = function() {
+                if (!this.exploded) {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    this.vy += 0.1;
+                    if (this.y <= this.explodeRadius) {
+                        this.exploded = true;
+                        this.explode();
+                    }
+                } else {
+                // 更新火花数组中每个火花的
+                    for (var i = 0; i < this.fireworks.length; i++) {
+                        this.fireworks[i].update();
+                        this.fireworks[i].draw();
+                    }
+                    if (this.fireworks.length === 0) {
+                        // 如果火花数组为空，则删除当前烟花对象
+                        fireworks.splice(fireworks.indexOf(this), 1);
+                    }
+                }
+            };
+
+            // 定义烟花粒子对象的explode方法，用于创建火花
+            Firework.prototype.explode = function() {
+                for (var i = 0; i < 50; i++) {
+                    // 计算每个火花的角度和速度
+                    var angle = Math.random() * Math.PI * 2;
+                    var speed = Math.random() * 5 + 5;
+                    var vx = Math.cos(angle) * speed;
+                    var vy = Math.sin(angle) * speed;
+                    // 创建火花对象并加入火花数组
+                    var particle = new Particle(this.x, this.y, vx, vy, 2, this.color);
+                    this.fireworks.push(particle);
+                }
+            };
+
+            // 创建一个空的烟花数组
+            var fireworks = [];
+
+            // 每隔几秒创建一个新的烟花对象
+            setInterval(function() {
+                var firework = new Firework();
+                fireworks.push(firework);
+            }, 2000);
+
+            // 循环绘制和更新所有的烟花和火花
+            function loop() {
+                requestAnimationFrame(loop);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (var i = 0; i < fireworks.length; i++) {
+                    fireworks[i].update();
+                    fireworks[i].draw();
+                }
+            }
+
+            // 开始循环
+            loop();
+        </script>
+    </body>
+</html>
